@@ -3,289 +3,735 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マンション保険料シミュレーター</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <title>マンション保険 事故状況による割引の仕組み</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        /* ヘッダー・ナビゲーション */
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #87ceeb;
+        }
+
+        .nav-links a.active {
+            color: #87ceeb;
+            font-weight: 600;
+        }
+
+        /* メインコンテンツ */
+        main {
+            margin-top: 80px;
+        }
+
+        .section {
+            padding: 4rem 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .section:nth-child(even) {
+            background-color: white;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e3c72;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #1e3c72, #2a5298);
+            margin: 1rem auto;
+        }
+
+        .section-subtitle {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2a5298;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        /* トップセクション */
+        .hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            text-align: center;
+            padding: 6rem 0;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            font-weight: 300;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* カード */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 5px solid #2a5298;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            color: #2a5298;
+            margin-bottom: 1rem;
+        }
+
+        /* 割引率テーブル */
+        .discount-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .discount-table th,
+        .discount-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .discount-table th {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            font-weight: 600;
+        }
+
+        .discount-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* タイムライン */
+        .timeline {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #1e3c72, #2a5298);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 2rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-right: auto;
+            margin-left: 0;
+            text-align: right;
+            padding-right: 2rem;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: auto;
+            margin-right: 0;
+            text-align: left;
+            padding-left: 2rem;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 45%;
+            position: relative;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background: #2a5298;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            border: 4px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 対策ボックス */
+        .strategy-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .strategy-box::before {
+            content: '💡';
+            font-size: 2rem;
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+        }
+
+        .strategy-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1565c0;
+            margin-bottom: 1rem;
+        }
+
+        /* 注意ボックス */
+        .warning-box {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            border: 2px solid #ff9800;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .warning-box::before {
+            content: '⚠️';
+            font-size: 2rem;
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+        }
+
+        .warning-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #e65100;
+            margin-bottom: 1rem;
+        }
+
+        /* グリッドレイアウト */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-content {
+                width: calc(100% - 60px);
+                margin-left: 60px !important;
+                margin-right: 0 !important;
+                text-align: left !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+
+            .timeline-dot {
+                left: 20px;
+            }
+        }
+
+        /* スムーズスクロール */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* アニメーション */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
-                <i class="fas fa-building text-blue-600"></i>
-                マンション保険料シミュレーター
-            </h1>
-            
-            <!-- 入力フォーム -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">
-                    <i class="fas fa-edit text-green-600"></i>
-                    入力項目
-                </h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- マンション戸数 -->
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-gray-700">
-                            <i class="fas fa-home"></i>
-                            マンション戸数
-                        </label>
-                        <div class="flex gap-2">
-                            <input 
-                                type="number" 
-                                id="units" 
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="戸数を入力"
-                                min="1"
-                                step="1"
-                            >
-                            <button 
-                                id="lockUnitsBtn" 
-                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                                onclick="toggleUnitsLock()"
-                            >
-                                <i class="fas fa-lock"></i>
-                                固定
-                            </button>
-                        </div>
-                        <p id="unitsStatus" class="text-sm text-gray-500"></p>
+<body>
+    <!-- ヘッダー・ナビゲーション -->
+    <header>
+        <nav>
+            <div class="logo">
+                <i class="fas fa-building"></i> マンション保険ガイド
+            </div>
+            <ul class="nav-links">
+                <li><a href="#top">トップ</a></li>
+                <li><a href="#basics">基本仕組み</a></li>
+                <li><a href="#counting">カウント方法</a></li>
+                <li><a href="#switching">中途切替</a></li>
+                <li><a href="#renewal">満期更改</a></li>
+                <li><a href="#deductible">免責金額</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- トップセクション -->
+        <section id="top" class="hero">
+            <div class="section">
+                <h1 class="hero-title fade-in">マンション保険<br>事故状況による割引の仕組み</h1>
+                <p class="hero-subtitle fade-in">本資料では、マンション共用部の火災保険における事故状況による割引の仕組みについて、図解を用いて分かりやすく説明します。無事故割引の適用条件、保険金受取日のカウント方法、そして効果的な対策方法まで、包括的にご理解いただけます。</p>
+            </div>
+        </section>
+
+        <!-- 無事故割引の基本的な仕組み -->
+        <section id="basics" class="section">
+            <h2 class="section-title fade-in">無事故割引の基本的な仕組み</h2>
+
+            <div class="card fade-in">
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="section-subtitle">マンション共用部の火災保険と無事故割引</h3>
+                <div class="section-content">
+                    <p>マンション共用部の火災保険では、過去の事故発生状況により保険料の割引が適用されます。この制度は、事故リスクの低い物件に対してインセンティブを提供し、適正な保険料負担を実現するものです。</p>
+                </div>
+            </div>
+
+            <div class="fade-in">
+                <h3 class="section-subtitle">１戸室あたりの事故件数で割引率が確定：事故件数 ÷ 総戸室 → ※総戸数50の場合で計算
+　　　　　　　　　　　<br> 数某保険会社　過去2年間の保険金受取件数による割引率(地震保険料を除く）
+                </h3>
+                <table class="discount-table">
+                    <thead>
+                        <tr>
+                            <th>保険金受取件数</th>
+                            <th>割引率</th>
+                            <th>適用条件</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0件</td>
+                            <td>69%割引</td>
+                            <td>過去2年間無事故</td>
+                        </tr>
+                        <tr>
+                            <td>1件</td>
+                            <td>62%割引</td>
+                            <td>軽微な事故1件のみ</td>
+                        </tr>
+                        <tr>
+                            <td>2件</td>
+                            <td>53%割引</td>
+                            <td>やや多い複数回事故発生</td>
+                        </tr>
+                        <tr>
+                            <td>3件</td>
+                            <td>36%割引</td>
+                            <td>多い複数回事故発生</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="strategy-box fade-in">
+                <h4 class="strategy-title">割引適用のメリット</h4>
+                <ul>
+                    <li><strong>保険料削減：</strong>最大割引率69%適用で保険料削減が可能</li>
+                    <li><strong>リスク管理：</strong>事故防止への意識向上</li>
+                    <li><strong>長期的効果：</strong>継続的な無事故により恒常的な割引適用</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 保険金受取日のカウント方法とタイムライン -->
+        <section id="counting" class="section">
+            <h2 class="section-title fade-in">保険金受取日のカウント方法とタイムライン</h2>
+
+            <div class="card fade-in">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3 class="section-subtitle">無事故割引のカウント基準</h3>
+                <div class="section-content">
+                    <p><strong>基準日：</strong>次契約の保険始期日から遡った6ヶ月前の日</p>
+                    <p><strong>対象期間：</strong>基準日から遡って2年間の期間内の保険金受取件数で割引率を決定</p>
+                </div>
+            </div>
+
+            <div class="timeline fade-in">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>2年前</h4>
+                        <p>カウント対象期間開始<br>この日以降の保険金受取が対象</p>
                     </div>
-                    
-                    <!-- 事故件数 -->
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-gray-700">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            事故件数
-                        </label>
-                        <input 
-                            type="number" 
-                            id="accidents" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="事故件数を入力"
-                            min="0"
-                            step="1"
-                            oninput="calculate()"
-                        >
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>1年前</h4>
+                        <p>カウント対象期間中間点<br>継続的な無事故状況の確認</p>
                     </div>
-                    
-                    <!-- 保険料 -->
-                    <div class="space-y-2 md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">
-                            <i class="fas fa-yen-sign"></i>
-                            保険料（地震保険料を除く）
-                        </label>
-                        <input 
-                            type="number" 
-                            id="premium" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="保険料を入力（円）"
-                            min="0"
-                            step="1"
-                            oninput="calculate()"
-                        >
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>6ヶ月前（基準日）</h4>
+                        <p>次契約保険始期日から6ヶ月前<br>この日がカウント基準日となる</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>現在（契約更新日）</h4>
+                        <p>新契約開始<br>過去2年間の実績に基づき割引率決定</p>
                     </div>
                 </div>
             </div>
-            
-            <!-- 割引率表 -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">
-                    <i class="fas fa-table text-purple-600"></i>
-                    保険料割引率表
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse border border-gray-300">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-300 px-4 py-2 text-left">1戸室あたり事故件数</th>
-                                <th class="border border-gray-300 px-4 py-2 text-center">区分</th>
-                                <th class="border border-gray-300 px-4 py-2 text-center">割引率</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="border border-gray-300 px-4 py-2">0から0.01以下</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center font-semibold text-green-600">S</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center">69%</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 px-4 py-2">0.01超から0.03以下</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center font-semibold text-blue-600">A</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center">62%</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 px-4 py-2">0.03超から0.05以下</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center font-semibold text-yellow-600">B</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center">53%</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 px-4 py-2">0.05超から0.07以下</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center font-semibold text-orange-600">C</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center">36%</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-300 px-4 py-2">0.07超から0.14以下</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center font-semibold text-red-600">D</td>
-                                <td class="border border-gray-300 px-4 py-2 text-center">22%</td>
-                            </tr>
-                        </tbody>
+
+            <div class="warning-box fade-in">
+                <h4 class="warning-title">重要なポイント</h4>
+                <p>保険金受取日が基準日から2年間の対象期間内にある場合、その件数が割引率の計算に影響します。事故発生日ではなく、<strong>保険金を実際に受け取った日</strong>が基準となることにご注意ください。</p>
+            </div>
+        </section>
+
+        <!-- 中途切替による対策方法 -->
+        <section id="switching" class="section">
+            <h2 class="section-title fade-in">中途切替による対策方法</h2>
+
+            <div class="card fade-in">
+                <div class="card-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <h3 class="section-subtitle">保険金受取日のカウント回避戦略</h3>
+                <div class="section-content">
+                    <p>保険金を受け取った日から<strong>6ヶ月以内に中途切替</strong>をすれば、その保険金受取日は次契約の割引計算においてカウントされません。</p>
+                </div>
+            </div>
+
+            <div class="strategy-box fade-in">
+                <h4 class="strategy-title">中途切替の効果的な活用方法</h4>
+                <div class="grid">
+                    <div>
+                        <h5><i class="fas fa-clock"></i> タイミング管理</h5>
+                        <p>保険金受取から6ヶ月以内の切替実行により、カウント対象から除外</p>
+                    </div>
+                    <div>
+                        <h5><i class="fas fa-calculator"></i> 費用対効果</h5>
+                        <p>中途切替手数料と将来の割引メリットを比較検討</p>
+                    </div>
+                    <div>
+                        <h5><i class="fas fa-chart-line"></i> 長期戦略</h5>
+                        <p>複数年にわたる保険料削減効果の最大化</p>
+                    </div>
+                    <div>
+                        <h5><i class="fas fa-file-contract"></i> 契約管理</h5>
+                        <p>新契約条件の確認と最適な保険会社の選択</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline fade-in">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>事故発生・保険金受取</h4>
+                        <p>この日から6ヶ月以内が対策期間</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>3ヶ月後</h4>
+                        <p>中途切替の検討・準備開始<br>新契約条件の比較検討</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h4>6ヶ月以内</h4>
+                        <p>中途切替実行<br>保険金受取日がカウント対象外に</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 満期更改時の注意点 -->
+        <section id="renewal" class="section">
+            <h2 class="section-title fade-in">満期更改時の注意点</h2>
+
+            <div class="warning-box fade-in">
+                <h4 class="warning-title">満期更改における割引対象期間の変化リスク</h4>
+                <p>契約日の前倒しが発生すると、カウント対象期間が変わり、本来のカウント対象期間外だった保険金受取日が対象となるリスクがあります。</p>
+            </div>
+
+            <div class="card fade-in">
+                <div class="card-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="section-subtitle">契約日変更による影響</h3>
+                <div class="section-content">
+                    <p>満期更改時に契約開始日が前倒しされると、基準日も同様に前倒しされ、これまでカウント対象外だった過去の保険金受取日が新たに対象期間に含まれる可能性があります。</p>
+                </div>
+            </div>
+
+            <div class="grid fade-in">
+                <div class="card">
+                    <h4><i class="fas fa-search"></i> 事前確認事項</h4>
+                    <ul>
+                        <li>新契約の保険始期日</li>
+                        <li>基準日の変更有無</li>
+                        <li>過去2年間の保険金受取履歴</li>
+                        <li>割引率への影響度</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4><i class="fas fa-shield-alt"></i> 対策方法</h4>
+                    <ul>
+                        <li>契約日の維持交渉</li>
+                        <li>中途切替の再検討</li>
+                        <li>保険会社の変更検討</li>
+                        <li>免責金額の見直し</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="strategy-box fade-in">
+                <h4 class="strategy-title">満期更改時のベストプラクティス</h4>
+                <ol>
+                    <li><strong>早期準備：</strong>満期3ヶ月前から更改条件の確認開始</li>
+                    <li><strong>履歴管理：</strong>過去の保険金受取履歴の正確な把握</li>
+                    <li><strong>シミュレーション：</strong>契約日変更による影響の事前計算</li>
+                    <li><strong>複数見積：</strong>複数保険会社での条件比較</li>
+                    <li><strong>専門相談：</strong>保険代理店との詳細協議</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- 免責金額を活用した対策方法 -->
+        <section id="deductible" class="section">
+            <h2 class="section-title fade-in">免責金額を活用した対策方法</h2>
+
+            <div class="card fade-in">
+                <div class="card-icon">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <h3 class="section-subtitle">保険料の軽減と修理費用の自己資金化</h3>
+                <div class="section-content">
+                    <p>免責金額の設定により、少額の修理費用は保険金請求せず自己負担する仕組みを構築し、少額請求を避けることで無事故割引を維持できます。</p>
+                </div>
+            </div>
+
+            <div class="grid fade-in">
+                <div class="strategy-box">
+                    <h4 class="strategy-title">免責金額設定のメリット</h4>
+                    <ul>
+                        <li><strong>保険料削減：</strong>免責金額設定により基本保険料が下がる</li>
+                        <li><strong>無事故維持：</strong>少額事故での保険金請求を回避</li>
+                        <li><strong>割引継続：</strong>無事故割引の継続的な適用</li>
+                        <li><strong>総合的節約：</strong>長期的な保険料負担の最適化</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4><i class="fas fa-chart-bar"></i> 免責金額の目安</h4>
+                    <table style="width: 100%; margin-top: 1rem;">
+                        <tr>
+                            <td><strong>10万円</strong></td>
+                            <td>軽微な修理対応</td>
+                        </tr>
+                        <tr>
+                            <td><strong>20万円</strong></td>
+                            <td>中程度の修理対応</td>
+                        </tr>
+                        <tr>
+                            <td><strong>50万円</strong></td>
+                            <td>大規模修理のみ保険適用</td>
+                        </tr>
                     </table>
                 </div>
             </div>
-            
-            <!-- 計算結果 -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">
-                    <i class="fas fa-calculator text-orange-600"></i>
-                    シミュレーション結果
-                </h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4">
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <h3 class="font-semibold text-blue-800">1戸室あたりの事故件数</h3>
-                            <p class="text-2xl font-bold text-blue-600" id="accidentsPerUnit">-</p>
-                        </div>
-                        
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <h3 class="font-semibold text-green-800">適用される区分</h3>
-                            <p class="text-2xl font-bold text-green-600" id="grade">-</p>
-                        </div>
-                        
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <h3 class="font-semibold text-purple-800">適用される割引率</h3>
-                            <p class="text-2xl font-bold text-purple-600" id="discountRate">-</p>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h3 class="font-semibold text-gray-800">元の保険料</h3>
-                            <p class="text-2xl font-bold text-gray-600" id="originalPremium">-</p>
-                        </div>
-                        
-                        <div class="bg-red-50 p-4 rounded-lg">
-                            <h3 class="font-semibold text-red-800">割引後の保険料</h3>
-                            <p class="text-3xl font-bold text-red-600" id="discountedPremium">-</p>
-                        </div>
-                        
-                        <div class="bg-yellow-50 p-4 rounded-lg">
-                            <h3 class="font-semibold text-yellow-800">割引金額</h3>
-                            <p class="text-2xl font-bold text-yellow-600" id="discountAmount">-</p>
-                        </div>
-                    </div>
+
+            <div class="warning-box fade-in">
+                <h4 class="warning-title">免責金額設定時の注意点</h4>
+                <p>免責金額は管理組合の財政状況と修繕積立金の残高を考慮して設定する必要があります。過度に高い免責金額は、必要な修理を先送りするリスクがあります。</p>
+            </div>
+
+            <div class="card fade-in">
+                <h3 class="section-subtitle">効果的な免責金額活用戦略</h3>
+                <div class="section-content">
+                    <ol>
+                        <li><strong>段階的設定：</strong>初年度は低めの免責金額から開始し、徐々に引き上げ</li>
+                        <li><strong>積立金連動：</strong>修繕積立金の残高に応じた免責金額の調整</li>
+                        <li><strong>定期見直し：</strong>年1回の免責金額適正性の確認</li>
+                        <li><strong>緊急時対応：</strong>大規模災害時の特別措置の事前検討</li>
+                    </ol>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <div class="strategy-box fade-in">
+                <h4 class="strategy-title">総合的な保険料最適化</h4>
+                <p>免責金額の活用、無事故割引の維持、適切な契約管理を組み合わせることで、マンション共用部の火災保険料を大幅に削減できます。長期的な視点での戦略的な保険管理が重要です。</p>
+            </div>
+        </section>
+    </main>
 
     <script>
-        let unitsLocked = false;
-        
-        function toggleUnitsLock() {
-            const unitsInput = document.getElementById('units');
-            const lockBtn = document.getElementById('lockUnitsBtn');
-            const statusText = document.getElementById('unitsStatus');
-            
-            if (!unitsLocked) {
-                // 戸数が入力されていない場合は固定できない
-                if (!unitsInput.value || unitsInput.value <= 0) {
-                    alert('戸数を入力してから固定してください。');
-                    return;
+        // スムーズスクロール
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
-                
-                // 固定する
-                unitsLocked = true;
-                unitsInput.disabled = true;
-                unitsInput.classList.add('bg-gray-100');
-                lockBtn.innerHTML = '<i class="fas fa-unlock"></i> 解除';
-                lockBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                lockBtn.classList.add('bg-red-600', 'hover:bg-red-700');
-                statusText.textContent = '戸数が固定されました。解除ボタンで再入力が可能です。';
-                statusText.classList.remove('text-gray-500');
-                statusText.classList.add('text-green-600');
-                
-                // 計算を実行
-                calculate();
-            } else {
-                // 固定を解除する
-                unitsLocked = false;
-                unitsInput.disabled = false;
-                unitsInput.classList.remove('bg-gray-100');
-                lockBtn.innerHTML = '<i class="fas fa-lock"></i> 固定';
-                lockBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
-                lockBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                statusText.textContent = '戸数の固定が解除されました。';
-                statusText.classList.remove('text-green-600');
-                statusText.classList.add('text-gray-500');
-                
-                // 結果をクリア
-                clearResults();
-            }
-        }
-        
-        function calculate() {
-            const units = parseFloat(document.getElementById('units').value);
-            const accidents = parseFloat(document.getElementById('accidents').value);
-            const premium = parseFloat(document.getElementById('premium').value);
-            
-            // 戸数が固定されていない場合は計算しない
-            if (!unitsLocked) {
-                clearResults();
-                return;
-            }
-            
-            // 入力値が不正な場合は計算しない
-            if (isNaN(units) || isNaN(accidents) || isNaN(premium) || units <= 0 || accidents < 0 || premium < 0) {
-                clearResults();
-                return;
-            }
-            
-            // 1戸室あたりの事故件数を計算
-            const accidentsPerUnit = accidents / units;
-            
-            // 区分と割引率を決定
-            let grade, discountRate;
-            if (accidentsPerUnit <= 0.01) {
-                grade = 'S';
-                discountRate = 0.69;
-            } else if (accidentsPerUnit <= 0.03) {
-                grade = 'A';
-                discountRate = 0.62;
-            } else if (accidentsPerUnit <= 0.05) {
-                grade = 'B';
-                discountRate = 0.53;
-            } else if (accidentsPerUnit <= 0.07) {
-                grade = 'C';
-                discountRate = 0.36;
-            } else if (accidentsPerUnit <= 0.14) {
-                grade = 'D';
-                discountRate = 0.22;
-            } else {
-                grade = '適用外';
-                discountRate = 0;
-            }
-            
-            // 割引後の保険料を計算
-            const discountedPremium = premium * (1 - discountRate);
-            const discountAmount = premium - discountedPremium;
-            
-            // 結果を表示
-            document.getElementById('accidentsPerUnit').textContent = accidentsPerUnit.toFixed(4);
-            document.getElementById('grade').textContent = grade;
-            document.getElementById('discountRate').textContent = grade === '適用外' ? '0%' : (discountRate * 100).toFixed(0) + '%';
-            document.getElementById('originalPremium').textContent = premium.toLocaleString() + '円';
-            document.getElementById('discountedPremium').textContent = Math.round(discountedPremium).toLocaleString() + '円';
-            document.getElementById('discountAmount').textContent = Math.round(discountAmount).toLocaleString() + '円';
-        }
-        
-        function clearResults() {
-            document.getElementById('accidentsPerUnit').textContent = '-';
-            document.getElementById('grade').textContent = '-';
-            document.getElementById('discountRate').textContent = '-';
-            document.getElementById('originalPremium').textContent = '-';
-            document.getElementById('discountedPremium').textContent = '-';
-            document.getElementById('discountAmount').textContent = '-';
-        }
+            });
+        });
+
+        // フェードインアニメーション
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // ナビゲーションハイライト
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-links a');
+
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
     </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"9595bb6e698f58f5","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.6.2","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 </body>
 </html>
